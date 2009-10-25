@@ -1,4 +1,0 @@
-#labels references
-=References=
-
-1. [http://www.lasr.cs.ucla.edu/Conquest-2.html Conquest-2,Improving Energy Efficiency and Performance Through a Disk/Hybrid File System]
