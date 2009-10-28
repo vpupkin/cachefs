@@ -34,11 +34,15 @@ The application profile will indicate what files are accessed, when they are acc
 
 The application profile builder will be tasked with creating and analyzing the file accesses of a given application and create a task list for the driver, in the form of an application profile. It will contain lists of files to preload and the triggers for the preload. The caching algorithms usable can be specified.
 
-This profile will be followed by the driver like a map. No analyis will be done.
+This profile will be followed by the driver like a map. No analysis will be done.
 
 == Cache algorithms simulator ==
 
+The algorithms used for moving the data files around the data stores are paramount to providing the speed improvement desired. Therefore, careful simulations of a variety of algorithms on a variety of test cases must be conducted.
 
+This application will be tasked with simulating all the operations conducted by the driver (moving files around the data store levels, what to do when the RAM or SSD are full etc.). The test cases can also be the initial application profiles, so the right caching and prefetching algorithms can be selected and embedded in the profile.
+
+Different algorithms will be tested and their results will be synthesized and presented.
 
 programming languages, frameworks, infrastructure (what are we using?)
 
