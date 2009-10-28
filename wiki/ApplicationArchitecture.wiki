@@ -19,6 +19,11 @@ Its main purpose is to provide accelerated file access. Because of this and the 
 For moving data between the data stores, different algoritms will be implemented. They will be used according to commands specified from user space (either directly by the user via command line, through application profiles or by cacheFS-aware applications via the user control library). 
 
 == cacheFS user control library ==
+
+The development and testing of the driver will require the creation of user-space control functions. It is therefore simple to augment and expose these functions to the user via a control library. 
+
+For example, functions like fopen() can be augmented by adding a parameter specifying the data store level requested (preload file to RAM, SSD or load it normally from the HDD). A fprefetch() can preload a file in a give data store level, making it available at a later date to the application, decreasing wait time and increasing read speed.
+
 == Application profile builder ==
 == Cache algorithms simulator ==
 
