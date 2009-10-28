@@ -44,9 +44,15 @@ This application will be tasked with simulating all the operations conducted by 
 
 Different algorithms will be tested and their results will be synthesized and presented.
 
-programming languages, frameworks, infrastructure (what are we using?)
+=Infrastructure used=
 
-    *
-      mention programming languages, frameworks, libraries and tools your are going to use for building your application
-    *
-      mention possible hardware/software/networking infrastructure to be used for research/development
+The target infrastructured will be composed of a computer having one or more hard-disk drives, a solid-state drive acting as a Level 2 cache and (obviously) RAM.
+
+=Software environment=
+
+ * Linux operating system, due to its open source kernel and tools
+ * C language for driver development
+ * C/C++/Java language for simulator and profiler
+ * Tools for profile creation: ....
+ * Libraries used: ...
+ 
