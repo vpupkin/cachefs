@@ -70,4 +70,7 @@ The target infrastructured will be composed of a computer having one or more har
 =Research goals=
  * improving file access latency and speed by using a hierarchical data store
  * example target: web/file servers
+
+=Project schedule=
+ blizzard style
  
