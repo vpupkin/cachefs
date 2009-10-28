@@ -55,4 +55,18 @@ The target infrastructured will be composed of a computer having one or more har
  * C/C++/Java language for simulator and profiler
  * Tools for profile creation: ....
  * Libraries used: ...
+
+=Related work=
+ * Linux kernel RAMFS, VFS
+ * sample VFS drivers
+ * ...
+
+=Team work=
+
+ * Ioan Ovidiu Hupca: filesystem driver and user library
+ * Bogdan Petre: application profiler (?)
+ * Alexandru Stan: cache and prefetch algorithm simulator (?)
+
+=Research goals=
+
  
