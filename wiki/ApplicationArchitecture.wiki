@@ -1,0 +1,5 @@
+#summary CacheFS application architecture
+
+= Application Architecture =
+
+http://cachefs.googlecode.com/files/arhitectura%20aplicatie%201.png
