@@ -68,5 +68,6 @@ The target infrastructured will be composed of a computer having one or more har
  * Alexandru Stan: cache and prefetch algorithm simulator (?)
 
 =Research goals=
-
+ * improving file access latency and speed by using a hierarchical data store
+ * example target: web/file servers
  
