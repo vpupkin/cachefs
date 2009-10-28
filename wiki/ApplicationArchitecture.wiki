@@ -14,9 +14,11 @@ http://cachefs.googlecode.com/files/arhitectura%20aplicatie%201.png
 
 The Filesystem driver is the core module of the project. Its task is to supply files from the three available data stores (by speed: RAM, SSD and HDD) and apply different caching and prefetching algoritms for moving data between the data stores.
 
-Its main purpose is to provide accelerated file access. Because of this and the inherent complexity of the write propagation task, the filesystem will be readonly.
+Its main purpose is to provide accelerated file access. Because of this and the inherent complexity of the write propagation task, the filesystem will be readonly. Since one of the targets for this project is a web server, which is usually not allowed write access to the files it serves, we deem this to be acceptable at this stage. It can also be viewed as a security mechanism.
 
 For moving data between the data stores, different algoritms will be implemented. They will be used according to commands specified from user space (either by the user via command line, through application profiles, by cacheFS-aware applications via the user control library) or self-selected by the driver. 
+
+By loading an application profile, the driver can preload a given number of files so they can be readily available when the application requests them.
 
 == cacheFS user control library ==
 
@@ -26,7 +28,9 @@ For example, functions like fopen() can be augmented by adding a parameter speci
 
 == Application profile builder ==
 
+In order for the caching and prefetching algoritms to work optimally for a given application, an application profile can be used.
 
+The application profile will indicate what files are accessed, when they are accessed and in what sequence the files are usually loaded.
 
 == Cache algorithms simulator ==
 
