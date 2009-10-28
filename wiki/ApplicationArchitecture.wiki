@@ -3,3 +3,18 @@
 = Application Architecture =
 
 http://cachefs.googlecode.com/files/arhitectura%20aplicatie%201.png
+
+= Deliverables = 
+dd
+ # filesystem driver
+ # cacheFS user control library
+ # application profile builder
+ # cache algorithms simulator
+
+#
+programming languages, frameworks, infrastructure (what are we using?)
+
+    *
+      mention programming languages, frameworks, libraries and tools your are going to use for building your application
+    *
+      mention possible hardware/software/networking infrastructure to be used for research/development
