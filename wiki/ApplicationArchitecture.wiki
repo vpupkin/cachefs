@@ -5,7 +5,6 @@
 http://cachefs.googlecode.com/files/arhitectura%20aplicatie%201.png
 
 = Deliverables = 
-dd
  # filesystem driver
  # cacheFS user control library
  # application profile builder
