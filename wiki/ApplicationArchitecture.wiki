@@ -16,7 +16,7 @@ The Filesystem driver is the core module of the project. Its task is to supply f
 
 Its main purpose is to provide accelerated file access. Because of this and the inherent complexity of the write propagation task, the filesystem will be readonly.
 
-For moving data between the data stores, different algoritms will be implemented. They will be used according to commands specified from user space (either directly by the user via command line, through application profiles or by cacheFS-aware applications via the user control library). 
+For moving data between the data stores, different algoritms will be implemented. They will be used according to commands specified from user space (either by the user via command line, through application profiles, by cacheFS-aware applications via the user control library) or self-selected by the driver. 
 
 == cacheFS user control library ==
 
@@ -25,6 +25,9 @@ The development and testing of the driver will require the creation of user-spac
 For example, functions like fopen() can be augmented by adding a parameter specifying the data store level requested (preload file to RAM, SSD or load it normally from the HDD). A fprefetch() can preload a file in a give data store level, making it available at a later date to the application, decreasing wait time and increasing read speed.
 
 == Application profile builder ==
+
+
+
 == Cache algorithms simulator ==
 
 
