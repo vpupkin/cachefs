@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
 
 
 
-   // fuse_main(argc, argv, &xmp_oper);
+   /// fuse_main(argc, argv, &xmp_oper);
 
 
 	initCacheControl_simpleCache(&cc);
