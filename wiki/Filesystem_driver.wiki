@@ -77,3 +77,7 @@ As the name says, it is a simple algorithm. It simply moves files to the level s
 .
 
 = Details - Second stage =
+
+=Deliverables=
+
+The current source code for the driver can be found at: http://code.google.com/p/cachefs/source/browse/#svn/trunk/FSdriver/cacheFS (online browsing link)
