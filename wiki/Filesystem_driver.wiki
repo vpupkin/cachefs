@@ -58,6 +58,21 @@ These modules represent the implementation of the filesystem operations. They al
 
 Represents the simplest possible implementation. It uses /dev/shm for RAM storage and another mounted partitions as the SSD (ex: /mnt/ssd). It is mostly a wrapper around the existing file system calls. Basically, when files a copied to the cache, they are copied to one of the two mount points.
 
-=== 
+=== RawCache ===
+
+Like SimpleCache, it uses /dev/shm and a mounted partition. But it allocates a large single file on each of them and manages the structures internally. It is useful for large files. *To be implemented*
+
+=== more to come... ===
+
+
+== Caching algorithms ==
+
+The caching algorithms control the way the RAM and SSD caches are filled, how a cache level is selected for a file and how the garbage collector works.
+
+=== SimpleAlgorithm ===
+
+As the name says, it is a simple algorithm. It simply moves files to the level specified by a simple rule (file size for example). It does not make any optimizations during operation.
+
+=== more to come ... ==
 
 = Details - Second stage =
