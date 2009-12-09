@@ -60,7 +60,7 @@ Represents the simplest possible implementation. It uses /dev/shm for RAM storag
 
 ===Raw Cache===
 
-Like SimpleCache, it uses /dev/shm and a mounted partition. But it allocates a large single file on each of them and manages the structures internally. It is useful for large files. *To be implemented*
+Like Simple Cache, it uses /dev/shm and a mounted partition. But it allocates a large single file on each of them and manages the structures internally. It is useful for large files. *To be implemented*
 
 === more to come... ===
 
