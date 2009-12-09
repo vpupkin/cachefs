@@ -71,7 +71,7 @@ The caching algorithms control the way the RAM and SSD caches are filled, how a 
 
 === Simple Algorithm ===
 
-As the name says, it is a simple algorithm. It simply moves files to the level specified by a simple rule (file size for example). It does not make any optimizations during operation.
+As the name says, it is a simple algorithm. It simply moves files to the level specified by a rule (file size for example). It does not make any optimizations during operation.
 
 === more to come ... ==
 .
