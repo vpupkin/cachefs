@@ -1,4 +1,4 @@
-#summary Description of the current development stage of the filesystem driver.
+#summary Description of the current development stage for the filesystem driver.
 
 = Introduction =
 
@@ -8,9 +8,33 @@ The first stage of development, allowing for easier testing and debugging, is by
 
 The second stage is a kernel module implementing an optimized variant of the filesystem developed in the first stage.
 
-= Details =
+= Details - First stage =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+A FUSE filesystem is used in this stage. When mounted, it provides a virtual view of the cached files.
+
+The internal structures mantain details regarding the cache level (either SSD or RAM) as well as metadata that allows for further optimization.
+
+The architecture is modular, allowing for plug and play modules and algorithms: there is an interface describing the caching operations and one for the caching algorithms. This allows for multiple, easily switchable, implementations of both.
+
+== Cache control interface ==
+
+* initCache - initializes the filesystem, allocated RAM and SSD space and internal structures
+* releaseCache - releases the allocated space and cleanups the internal structures
+
+* cacheFile(const char* path, int level, int force) - cache a file on the HDD. Can force a target level (RAM or SSD) or allow for it to be automatically selected by the current algorithm
+
+
+
+        int (*getCacheLevel)(const char* path);
+
+        long long (*getFreeSpace)(int level);
+
+        int (*cleanup)(int level);
+
+
+        int (*getCacheState)();
+
+} cacheControl;
+
+
+= Details - Second stage =
