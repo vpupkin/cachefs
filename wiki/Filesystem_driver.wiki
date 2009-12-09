@@ -1,0 +1,16 @@
+#summary Description of the current development stage of the filesystem driver.
+
+= Introduction =
+
+The Filesystem driver is the core module of the project. Its task is to supply files from the three available data stores (by speed: RAM, SSD and HDD) and apply different caching and prefetching algoritms for moving data between the data stores. 
+
+The first stage of development, allowing for easier testing and debugging, is by using FUSE and running the filesystem routines in user space. Different caching algorithms will be implemented. *These will be the deliverables for the SOA 2009-2010 course.*
+
+The second stage is a kernel module implementing an optimized variant of the filesystem developed in the first stage.
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
