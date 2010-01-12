@@ -12,6 +12,8 @@
 
 struct params_simpleCache
 {
+	char* cachefsMountPoint;
+
 	char* ramMountPoint;
 	char* ssdMountPoint;
 };
