@@ -24,7 +24,7 @@ char* ssdMountPoint=NULL;
 char* hddMountPoint=NULL;
 char* fsRoot=NULL;
 
-static cachingAlgoritm alg;
+static cachingAlgoritm* alg;
 
 
 static int getattr_simpleCache(const char *path, struct stat *stbuf);
@@ -116,7 +116,7 @@ int initCache_simpleCache(int* ramSize, int* ssdSize, void* parameters , struct 
 	pAlg.ssdMountPoint = params->ssdMountPoint;
 	pAlg.ramMountPoint = params->ramMountPoint;
 
-	alg.initCacheStructs(&pAlg);
+	alg->initCacheStructs(&pAlg);
 
 	*operations = &oper;
 
@@ -172,9 +172,8 @@ int getCacheLevel_simpleCache(const char* path)
 	return LVL_NONE;
 }
 
-int initCacheControl_simpleCache(cacheControl* cc )
+int initCacheControl_simpleCache(cacheControl* cc , cachingAlgoritm* algorithm)
 {
-
 	memset(cc, 0, sizeof(cacheControl));
 
 	cc->initCache = initCache_simpleCache;
@@ -187,10 +186,8 @@ int initCacheControl_simpleCache(cacheControl* cc )
 
 	cc->getCacheLevel = getCacheLevel_simpleCache;
 
+	alg = algorithm;
 
-	initCachingAlgorithm_simpleAlg(&alg, cc);
-
-	cc->fsOperations = alg.fsOperations;
 
 	return 0;
 }
@@ -336,9 +333,9 @@ static int open_simpleCache(const char *path, struct fuse_file_info * fi)
 
 
 
-    alg.recordAccess( path, hddPath );
+    alg->recordAccess( path, hddPath );
 
-    action = alg.getAction( path );
+    action = alg->getAction( path );
 
 
     switch(action)

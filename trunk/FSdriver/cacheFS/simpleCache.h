@@ -9,6 +9,7 @@
 #define SIMPLECACHE_H_
 
 #include "cachefs.h"
+#include "cachingAlgorithms.h"
 
 struct params_simpleCache
 {
@@ -19,7 +20,7 @@ struct params_simpleCache
 	char* hddMountPoint;
 };
 
-int initCacheControl_simpleCache(cacheControl* cc );
+int initCacheControl_simpleCache(cacheControl* cc , cachingAlgoritm* algorithm);
 
 
 
