@@ -67,6 +67,27 @@ long long getFreeSpace_simpleCache(int level)
 
 }
 
+long long getTotalSpace_simpleCache(int level)
+{
+	struct statfs buf;
+	long long res;
+
+	switch (level)
+	{
+		case LVL_RAM:	res = statfs(ramMountPoint, &buf); break;
+		case LVL_SSD:	res = statfs(ssdMountPoint, &buf); break;
+		default:		return -1;
+	}
+
+	if (res !=0)	// error
+		return -1;
+
+	res = buf.f_bsize * buf.f_blocks;
+
+	return res;	// return total space
+
+}
+
 int initCache_simpleCache(int* ramSize, int* ssdSize, void* parameters , struct fuse_operations **operations)
 {
 	long long freeR, freeS;
@@ -160,13 +181,14 @@ int initCacheControl_simpleCache(cacheControl* cc )
 	cc->releaseCache= releaseCache_simpleCache;
 
 	cc->getFreeSpace = getFreeSpace_simpleCache;
+	cc->getTotalSpace= getTotalSpace_simpleCache;
 
 	cc->cacheFile = cacheFile_simpleCache;
 
 	cc->getCacheLevel = getCacheLevel_simpleCache;
 
 
-	initCachingAlgorithm_simpleAlg(&alg);
+	initCachingAlgorithm_simpleAlg(&alg, cc);
 
 	cc->fsOperations = alg.fsOperations;
 
@@ -280,6 +302,23 @@ finalize:
     return res;
 }
 
+static int fileCopy(const char* src, const char* dst )
+{
+	//TODO: implement a better copying method. Preferable Zero-Copy method
+
+	// I'm using system() as a shortcut. fork & exec would be better. cp is useful because it's efficient and fast, better than something written in a hurry
+
+	char *s = calloc( strlen(src) + strlen(dst) + 10 ,sizeof(char));
+
+	sprintf(s, "cp %s %s", src, dst);
+
+	int res = system(s);
+
+	if (res != -1 )
+		return 0;
+	else
+		return -1;
+}
 
 static int open_simpleCache(const char *path, struct fuse_file_info * fi)
 {
@@ -304,14 +343,19 @@ static int open_simpleCache(const char *path, struct fuse_file_info * fi)
 
     switch(action)
     {
-
 		case COPY_HDD_RAM:
 		{
+			fprintf(stderr, "+++ copying from HDD to RAM \n");
+
+			res = fileCopy(hddPath, ramPath);
+
+			if (res < 0)
+				return -1;										// an error occurred while copying
 
 		}
 		case READ_FROM_RAM:
 		{
-			res = open(ssdPath, fi->flags);						// open the file on the RAM
+			res = open(ramPath, fi->flags);						// open the file from RAM
 
 			if (res == -1)
 				res = -errno;
@@ -322,13 +366,43 @@ static int open_simpleCache(const char *path, struct fuse_file_info * fi)
 		}
 
 
+
+		case COPY_SSD_RAM:
+		{
+			fprintf(stderr, "+++ copying from SSD to RAM \n");
+
+			res = fileCopy(ssdPath, ramPath);
+
+			if (res < 0)
+				return -1;										// an error occurred while copying
+
+
+			res = open(ramPath, fi->flags);						// open the file from RAM
+
+			if (res == -1)
+				res = -errno;
+			else
+				fprintf(stderr, "--- opening from RAM \n");
+
+			break;
+		}
+
+
+
+
 		case COPY_HDD_SSD:
 		{
+			fprintf(stderr, "+++ copying from HDD to SSD \n");
+
+			res = fileCopy(hddPath, ssdPath);
+
+			if (res < 0)
+				return -1;										// an error occurred while copying
 
 		}
 		case READ_FROM_SSD:
 		{
-			res = open(ssdPath, fi->flags);						// open the file on the SSD
+			res = open(ssdPath, fi->flags);						// open the file from SSD
 
 			if (res == -1)
 				res = -errno;

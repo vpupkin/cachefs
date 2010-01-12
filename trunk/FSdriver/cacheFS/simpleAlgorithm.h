@@ -16,6 +16,6 @@ struct params_simpleAlg
 	char* ssdMountPoint;
 };
 
-int initCachingAlgorithm_simpleAlg(cachingAlgoritm* alg);
+int initCachingAlgorithm_simpleAlg(cachingAlgoritm* alg, cacheControl* ccontrol);
 
 #endif /* SIMPLEALGORITHM_H_ */
