@@ -30,7 +30,22 @@ typedef struct _cachingAlgorithm
 	struct fuse_operations fsOperations;
 
 
+	void (*recordAccess)(const char*  path, const char* hddPath );
+
+	int (*getAction)(const char* path );
+
 } cachingAlgoritm;
+
+
+/* Actions ordered by the caching algorithms for execution by the cache implementation */
+
+#define COPY_HDD_RAM  0x12 		/* copy from HDD to RAM and read file from RAM */
+#define COPY_HDD_SSD  0x11		/* copy from HDD to SSD and read file from SSD */
+
+#define READ_FROM_RAM 0x02		/* read file from RAM */
+#define READ_FROM_SSD 0x01		/* read file from SSD */
+#define READ_FROM_HDD 0x00		/* read file from HDD */
+
 
 
 
