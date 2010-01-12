@@ -36,7 +36,6 @@ typedef struct _cacheControl
 	int (*getCacheState)();
 
 
-	struct fuse_operations fsOperations;
 
 } cacheControl;
 

@@ -24,31 +24,34 @@
 #include "cachefs.h"
 #include "simpleCache.h"
 
+#include "cachingAlgorithms.h"
+#include "simpleAlgorithm.h"
+#include "simpleSplitAlgorithm.h"
 
 char* cachefsMountPoint=NULL;
-cacheControl cc;
 
+cacheControl cc;
+cachingAlgoritm alg;
 
 static struct fuse_operations *cache_oper=NULL;		// pointer to the structure describing the file operations. Filled by calling initCache
 
 int main(int argc, char *argv[])
 {
-
-
 	struct params_simpleCache p={.ssdMountPoint="/ssd", .ramMountPoint="/dev/shm", .hddMountPoint="/tmp/hdd" , .cachefsMountPoint=argv[1]};
 
 	int ramSize=128;
 	int ssdSize=128;
 
 
-
-
-
 	cachefsMountPoint = strdup(argv[1]);
 
 
-	initCacheControl_simpleCache(&cc);
+	// initialize caching Algorithm //
+	//initCachingAlgorithm_simpleAlg(&alg, &cc);
+	initCachingAlgorithm_simpleSplitAlg(&alg, &cc);
 
+	// initialize caching Implementation //
+	initCacheControl_simpleCache(&cc, &alg);
 	cc.initCache(&ramSize, &ssdSize, &p, &cache_oper);
 
 

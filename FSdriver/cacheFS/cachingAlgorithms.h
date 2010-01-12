@@ -27,8 +27,6 @@ typedef struct _cachingAlgorithm
 
 	int (*getCacheStatus)();
 
-	struct fuse_operations fsOperations;
-
 
 	void (*recordAccess)(const char*  path, const char* hddPath );
 
