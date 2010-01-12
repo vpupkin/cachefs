@@ -17,6 +17,30 @@ static char* fsRoot=NULL;
 static char* ssdMountRoot=NULL;
 static char* ramMountRoot=NULL;
 
+struct fileCacheRecord
+{
+	char* path;				// relative path of the file. It's the filepath provided by FUSE
+	char* hddPath;			// absolute path of the file on the HDD
+
+	off_t fileSize;		// file size
+
+	long long accessCount;	// the number of times the file has been accessed
+	time_t lastAccess;		// timestamp of the last access
+
+	int isRAM;				// the file exists in RAM
+	int isSSD;				// the file exists on the SSD
+};
+
+
+static struct fileCacheRecord* rec=NULL;
+static int rec_n=0;
+static int rec_step=100;
+static int rec_size=100;
+
+
+void recordAccess_simpleAlg(const char*  path, const char* hddPath );
+int getAction_simpleAlg(const char* path );
+
 
 int initCacheStructs_simpleAlg(void* parameters)
 {
@@ -28,6 +52,9 @@ int initCacheStructs_simpleAlg(void* parameters)
 	ssdMountRoot = strdup(p->ssdMountPoint);
 	ramMountRoot = strdup(p->ramMountPoint);
 
+
+	rec = (struct fileCacheRecord*) malloc( rec_size * sizeof(struct fileCacheRecord));
+
 	return 0;
 }
 
@@ -37,59 +64,9 @@ int releaseCacheStructs_simpleAlg()
 	free(ssdMountRoot);
 	free(ramMountRoot);
 
+	free(rec);
+
 	return 0;
-}
-
-
-static __inline__ void getPaths(const char *path, char** ssdPath, char** ramPath)
-{
-	//TODO: use only secure string manipulators and check for buffer overflow
-
-    *ssdPath = malloc( (strlen(ssdMountRoot)+1+strlen(path + strlen(fsRoot))  +1) * sizeof(char) );
-    *ramPath = malloc( (strlen(ramMountRoot)+1+strlen(path + strlen(fsRoot))  +1) * sizeof(char) );
-
-    strcpy(*ssdPath, ssdMountRoot);
-    strcat(*ssdPath,"/");
-    strcat(*ssdPath,path + strlen(fsRoot));
-
-
-    strcpy(*ramPath, ramMountRoot);
-    strcat(*ramPath,"/");
-    strcat(*ramPath,path + strlen(fsRoot));
-
-}
-
-static int open_simpleAlg(const char *path, int flags)
-{
-    int res, res1, res2;
-    char* ssdPath=NULL;
-    char* ramPath=NULL;
-
-    res=0;
-
-    getPaths(path, &ssdPath, &ramPath);
-
-    res1 = open(ssdPath, flags);
-    res2 = open(ramPath, flags);
-
-    if(res1 == -1 && res2== -1)  // file not found in RAM or SSD
-    {
-		res = -errno;
-		goto finalize;
-    }
-
-    if (res1 == -1 )
-    	close(res2);
-    else
-		close(res1);
-
-finalize:
-
-    free(ssdPath);
-    free(ramPath);
-
-
-    return res;
 }
 
 int initCachingAlgorithm_simpleAlg(cachingAlgoritm* alg)
@@ -99,8 +76,65 @@ int initCachingAlgorithm_simpleAlg(cachingAlgoritm* alg)
 	alg->initCacheStructs = initCacheStructs_simpleAlg;
 	alg->releaseCacheStructs = releaseCacheStructs_simpleAlg;
 
-
-	alg->fsOperations.open = open_simpleAlg;
+	alg->recordAccess = recordAccess_simpleAlg;
+	alg->getAction = getAction_simpleAlg;
 
 	return 0;
 }
+
+
+
+
+void recordAccess_simpleAlg(const char*  path, const char* hddPath )
+{
+	int i;
+	struct stat buf;
+
+
+	// search if the file exists
+	for (i=0; i<rec_n; i++)
+		if ( strcmp(rec[i].path, path) == 0 )
+		{
+			// file record found, update it
+
+			rec[i].accessCount++;
+			rec[i].lastAccess = time(NULL);
+
+			return;
+		}
+
+	// file record does not exist, create one
+
+	if ( rec_n >= rec_size )
+	{
+		// extend array
+
+		rec_size+=rec_step;
+		rec = (struct fileCacheRecord*) realloc(rec, rec_size * sizeof(struct fileCacheRecord));
+
+	}
+
+
+	rec[rec_n].path = strdup(path);
+	rec[rec_n].hddPath = strdup(hddPath);
+
+	rec[rec_n].accessCount = 1;
+	rec[rec_n].lastAccess = time(NULL);
+
+	rec[rec_n].isRAM = 0;
+	rec[rec_n].isSSD = 0;
+
+
+	stat(path, &buf);
+	rec[rec_n].fileSize = buf.st_size;
+
+	rec_n++;
+
+}
+
+int getAction_simpleAlg(const char* path )
+{
+	return READ_FROM_HDD;
+}
+
+

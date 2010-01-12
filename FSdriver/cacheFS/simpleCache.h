@@ -16,6 +16,7 @@ struct params_simpleCache
 
 	char* ramMountPoint;
 	char* ssdMountPoint;
+	char* hddMountPoint;
 };
 
 int initCacheControl_simpleCache(cacheControl* cc );

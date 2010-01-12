@@ -21,6 +21,7 @@
 
 char* ramMountPoint=NULL;
 char* ssdMountPoint=NULL;
+char* hddMountPoint=NULL;
 char* fsRoot=NULL;
 
 static cachingAlgoritm alg;
@@ -28,7 +29,6 @@ static cachingAlgoritm alg;
 
 static int getattr_simpleCache(const char *path, struct stat *stbuf);
 static int getdir_simpleCache(const char *path, fuse_dirh_t h, fuse_dirfil_t filler);
-static int getdir_simpleCache2(const char *path, fuse_dirh_t h, fuse_dirfil_t filler);
 static int open_simpleCache(const char *path, struct fuse_file_info *fi);
 static int release_simpleCache(const char *path, struct fuse_file_info *);
 static int read_simpleCache(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
@@ -38,7 +38,7 @@ struct fuse_operations oper=
 {
 	    .getattr = getattr_simpleCache,
 
-	    .getdir	 = getdir_simpleCache2, 	// TODO: deprecated, replace with readdir
+	    .getdir	 = getdir_simpleCache, 	// TODO: deprecated, replace with readdir
 
 	    .open	 = open_simpleCache,
 	    .release = release_simpleCache,
@@ -77,6 +77,7 @@ int initCache_simpleCache(int* ramSize, int* ssdSize, void* parameters , struct 
 
 	ssdMountPoint = strdup(params->ssdMountPoint);
 	ramMountPoint = strdup(params->ramMountPoint);
+	hddMountPoint = strdup(params->hddMountPoint);
 	fsRoot = strdup(params->cachefsMountPoint);
 
 
@@ -106,6 +107,7 @@ int releaseCache_simpleCache()
 {
 	free(ssdMountPoint);
 	free(ramMountPoint);
+	free(hddMountPoint);
 	free(fsRoot);
 
 	return 0;
@@ -177,12 +179,13 @@ int initCacheControl_simpleCache(cacheControl* cc )
 
 
 
-static __inline__ void getPaths(const char *path, char** ssdPath, char** ramPath)
+static __inline__ void getPaths(const char *path, char** ssdPath, char** ramPath, char** hddPath)
 {
 	//TODO: use only secure string manipulators and check for buffer overflow
 
     *ssdPath = malloc( (strlen(ssdMountPoint)+1+strlen(path) +1 ) * sizeof(char) );
     *ramPath = malloc( (strlen(ramMountPoint)+1+strlen(path) +1 ) * sizeof(char) );
+    *hddPath = malloc( (strlen(hddMountPoint)+1+strlen(path) +1 ) * sizeof(char) );
 
     strcpy(*ssdPath, ssdMountPoint);
     strcat(*ssdPath,"/");
@@ -192,6 +195,24 @@ static __inline__ void getPaths(const char *path, char** ssdPath, char** ramPath
     strcpy(*ramPath, ramMountPoint);
     strcat(*ramPath,"/");
     strcat(*ramPath,path);
+
+
+    strcpy(*hddPath, hddMountPoint);
+    strcat(*hddPath,"/");
+    strcat(*hddPath,path);
+
+}
+
+
+static __inline__ void getHddPath(const char *path, char** hddPath)
+{
+	//TODO: use only secure string manipulators and check for buffer overflow
+
+	*hddPath = malloc( (strlen(hddMountPoint)+1+strlen(path) +1 ) * sizeof(char) );
+
+    strcpy(*hddPath, hddMountPoint);
+    strcat(*hddPath,"/");
+    strcat(*hddPath,path);
 
 }
 
@@ -203,29 +224,22 @@ static __inline__ void getPaths(const char *path, char** ssdPath, char** ramPath
 
 static int getattr_simpleCache(const char *path, struct stat *stbuf)
 {
-	char* ramPath=NULL;
-	char* ssdPath=NULL;
+	char* hddPath=NULL;
+
     int res;
     int result = 0;
 
-    getPaths(path, &ssdPath, &ramPath);
+    getHddPath(path, &hddPath);
 
 
-    res = lstat(ramPath, stbuf);
+    res = lstat(hddPath, stbuf);
     if (res == 0)					// file is in ram
     	goto finalize;
-
-    res = lstat(ssdPath, stbuf);
-    if (res == 0)					// file is in ssd
-    	goto finalize;;
-
-    fprintf(stderr, "File '%s' is not found in cache\n", path);
 
     result = -errno;
 
 finalize:
-	free(ramPath);
-	free(ssdPath);
+	free(hddPath);
 
     return result;   				// file is not found in cache
 }
@@ -233,19 +247,16 @@ finalize:
 
 static int getdir_simpleCache(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
 {
-	char* ramPath=NULL;
-	char* ssdPath=NULL;
+	char* hddPath=NULL;
 
     DIR *dp;
     struct dirent *de;
     int res = 0;
 
-    getPaths(path, &ssdPath, &ramPath);
-
-    //TODO: remove duplicates
+    getHddPath(path, &hddPath);
 
 
-    dp = opendir(ramPath);
+    dp = opendir(hddPath);
     if (dp != NULL)
     {
 		while((de = readdir(dp)) != NULL)
@@ -262,132 +273,9 @@ static int getdir_simpleCache(const char *path, fuse_dirh_t h, fuse_dirfil_t fil
     if (res)
     	goto finalize;
 
-    dp = opendir(ssdPath);
-    if (dp != NULL)
-    {
-		while((de = readdir(dp)) != NULL)
-		{
-			res = filler(h, de->d_name, de->d_type, 0);
-			if(res != 0)
-				break;
-		}
-
-		closedir(dp);
-
-	}
 
 finalize:
-	free(ramPath);
-	free(ssdPath);
-
-    return res;
-}
-
-struct dirset
-{
-	char* d_name;
-	unsigned char d_type;
-};
-
-static int getdir_simpleCache2(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
-{
-	char* ramPath=NULL;
-	char* ssdPath=NULL;
-
-	// self-extending string array
-	struct dirset* set = NULL;
-	int set_step = 100;
-	int set_size = set_step;
-	int set_i = 0;
-
-	// dir enumerator data structures
-    DIR *dp;
-    struct dirent *de;
-    int res = 0;
-    int i;
-
-
-    set = (struct dirset*) calloc(set_size,sizeof(struct dirset));					// init array
-
-
-
-    getPaths(path, &ssdPath, &ramPath);
-
-
-    dp = opendir(ramPath);
-    if (dp != NULL)
-    {
-		while((de = readdir(dp)) != NULL)
-		{
-			res = filler(h, de->d_name, de->d_type, 0);
-			if(res != 0)
-				break;
-
-
-			// add filename to set
-
-			if (set_i >= set_size)
-			{
-				// extend
-				set_size += set_step;
-				set = (struct dirset*) realloc(set, set_size * sizeof(struct dirset));
-			}
-			set[set_i].d_name = strdup(de->d_name);
-			set[set_i].d_type = de->d_type;
-			set_i++;
-
-		}
-
-		closedir(dp);
-
-	}
-
-    if (res)
-    	goto finalize;
-
-    dp = opendir(ssdPath);
-    if (dp != NULL)
-    {
-		while((de = readdir(dp)) != NULL)
-		{
-			int duplicate = 0;
-			int i;
-
-			// search for a duplicated filename present in RAM
-
-			for (i=0; i<set_i; i++)
-				if (strcmp(de->d_name, set[i].d_name) == 0)
-				{
-					duplicate = 1;
-					break;
-				}
-
-			if (duplicate)
-				continue;
-
-			// no duplicate found, add file to dir listing
-
-			res = filler(h, de->d_name, de->d_type, 0);
-			if(res != 0)
-				break;
-
-
-		}
-
-		closedir(dp);
-
-
-
-	}
-
-finalize:
-	free(ramPath);
-	free(ssdPath);
-
-	for (i=0; i<set_i; i++)
-		free(set[i].d_name);
-
-	free(set);
+	free(hddPath);
 
     return res;
 }
@@ -397,37 +285,93 @@ static int open_simpleCache(const char *path, struct fuse_file_info * fi)
 {
 	char* ramPath=NULL;
 	char* ssdPath=NULL;
+	char* hddPath=NULL;
     int res;
 
-    getPaths(path, &ssdPath, &ramPath);
+
+    int action;
+
+    getPaths(path, &ssdPath, &ramPath, &hddPath);
 
     //TODO: check for write-related flags and return error if they are found
 
-    res = open(ramPath, fi->flags);		// open the file in the RAM cache
-    if (res != -1)
-    	goto finalize;
-
-    res = open(ssdPath, fi->flags);		// open the file in the SSD cache
-    if (res != -1)
-    	goto finalize;
-
-    res = -errno;						// unable to open file
 
 
-finalize:
+    alg.recordAccess( path, hddPath );
+
+    action = alg.getAction( path );
+
+
+    switch(action)
+    {
+
+		case COPY_HDD_RAM:
+		{
+
+		}
+		case READ_FROM_RAM:
+		{
+			res = open(ssdPath, fi->flags);						// open the file on the RAM
+
+			if (res == -1)
+				res = -errno;
+			else
+				fprintf(stderr, "--- opening from RAM \n");
+
+			break;
+		}
+
+
+		case COPY_HDD_SSD:
+		{
+
+		}
+		case READ_FROM_SSD:
+		{
+			res = open(ssdPath, fi->flags);						// open the file on the SSD
+
+			if (res == -1)
+				res = -errno;
+			else
+				fprintf(stderr, "--- opening from SSD \n");
+
+			break;
+		}
+
+
+		case READ_FROM_HDD:
+		default:
+		{
+			res = open(hddPath, fi->flags);						// open the file on the HDD
+
+			if (res == -1)
+				res = -errno;
+			else
+				fprintf(stderr, "--- opening from HDD \n");
+
+			break;
+		}
+
+
+
+    }
+
+
+
    	free(ramPath);
    	free(ssdPath);
+   	free(hddPath);
 
    	if (res >=0)
    	{
-   		fi->fh = res;					// return file handle
+   		fi->fh = res;										// return file handle
 
    		fprintf(stderr, "File handle = 0x%x \n", res);
 
-   		return 0;						// success
+   		return 0;											// success
    	}
 
-	return res;							// error
+	return res;												// error
 }
 
 static int release_simpleCache(const char *path, struct fuse_file_info *fi)

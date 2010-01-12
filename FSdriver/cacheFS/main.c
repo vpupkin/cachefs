@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 {
 
 
-	struct params_simpleCache p={.ssdMountPoint="/ssd", .ramMountPoint="/dev/shm", .cachefsMountPoint=argv[1]};
+	struct params_simpleCache p={.ssdMountPoint="/ssd", .ramMountPoint="/dev/shm", .hddMountPoint="/tmp/hdd" , .cachefsMountPoint=argv[1]};
 
 	int ramSize=128;
 	int ssdSize=128;
