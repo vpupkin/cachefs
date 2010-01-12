@@ -28,6 +28,7 @@ typedef struct _cacheControl
 	int (*getCacheLevel)(const char* path);
 
 	long long (*getFreeSpace)(int level);
+	long long (*getTotalSpace)(int level);
 
 	int (*cleanup)(int level);
 

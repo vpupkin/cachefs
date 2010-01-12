@@ -39,7 +39,8 @@ typedef struct _cachingAlgorithm
 
 /* Actions ordered by the caching algorithms for execution by the cache implementation */
 
-#define COPY_HDD_RAM  0x12 		/* copy from HDD to RAM and read file from RAM */
+#define COPY_HDD_RAM  0x13 		/* copy from HDD to RAM and read file from RAM */
+#define COPY_SSD_RAM  0x12 		/* copy from SSD to RAM and read file from RAM */
 #define COPY_HDD_SSD  0x11		/* copy from HDD to SSD and read file from SSD */
 
 #define READ_FROM_RAM 0x02		/* read file from RAM */
