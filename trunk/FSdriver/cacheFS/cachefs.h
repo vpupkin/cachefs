@@ -8,6 +8,9 @@
 #ifndef ALGORITHMS_H_
 #define ALGORITHMS_H_
 
+#define FUSE_USE_VERSION 26 /* latest fuse version */
+#include <fuse.h>
+
 #define LVL_NONE 0
 #define LVL_SSD 1
 #define LVL_RAM 2
@@ -15,7 +18,7 @@
 typedef struct _cacheControl
 {
 
-	int (*initCache)(int* ramSize, int* ssdSize, void* parameters);
+	int (*initCache)(int* ramSize, int* ssdSize, void* parameters, struct fuse_operations **oper);
 	int (*releaseCache)();
 
 	int (*cacheFile)(const char* path, int level, int force);
@@ -30,6 +33,9 @@ typedef struct _cacheControl
 
 
 	int (*getCacheState)();
+
+
+	struct fuse_operations fsOperations;
 
 } cacheControl;
 

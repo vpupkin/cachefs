@@ -8,6 +8,9 @@
 #ifndef CACHINGALGORITHMS_H_
 #define CACHINGALGORITHMS_H_
 
+#define FUSE_USE_VERSION 26 /* latest fuse version */
+#include <fuse.h>
+
 typedef struct _cachingAlgorithm
 {
 	int (*initCacheStructs)(void* parameters);
@@ -23,6 +26,9 @@ typedef struct _cachingAlgorithm
 	int (*getCacheLevel)(const char* path);
 
 	int (*getCacheStatus)();
+
+	struct fuse_operations fsOperations;
+
 
 } cachingAlgoritm;
 
